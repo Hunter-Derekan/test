@@ -33,24 +33,27 @@ camera.position.x = -275;
 camera.position.y = 15;
 camera.position.z = -225;
 
+const directionalLight = new THREE.DirectionalLight( 0xffffff, 5.0 );
+scene.add( directionalLight );
+
 // instantiate ambient light
 const light = new THREE.AmbientLight( 0x404040, 15.0 ); // soft white light
 scene.add( light );
 
 const DayCycle = {
-  day: 'Daytime',
-  night: 'Nighttime'
+  DAY: 'Daytime',
+  NIGHT: 'Nighttime'
 }
 
 const params = {
-  cycle: DayCycle.day,
+  cycle: DayCycle.DAY,
   time: 0.5
 }
 
 function makeGUI() {
 
   const gui = new GUI();
-  gui.add(params, 'time of day', DayCycle).onChange(animate);
+  gui.add(params, 'time of day', DayCycle).onChange(initDay);
   gui.add(params, 'time', 0.0, 1).step(0.01).onChange(animate);
 
 }
@@ -60,6 +63,22 @@ function makeGUI() {
 makeGUI();
 skyBox();
 makefloor();
+initDay();
+
+
+
+function initDay() {
+  switch (params.cycle) {
+    case DayCycle.DAY:
+      directionalLight.color.setHex(0xffffff);
+      directionalLight.intensity = 10.0
+      break;
+    case DayCycle.NIGHT:
+      directionalLight.color.setHex(0x805e00);
+      directionalLight.intensity = 1.0
+      break;
+  }
+}
 
 // create skybox by loading in textures
 // taken from user128511 https://stackoverflow.com/questions/59169486/skybox-for-three-js
