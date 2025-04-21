@@ -6,7 +6,7 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 // COSC3306 Final Project
 
 
-let scene, renderer, camera;
+let scene, renderer, camera, gui;
 
 scene = new THREE.Scene();
 
@@ -30,18 +30,18 @@ const light = new THREE.AmbientLight( 0x404040, 15.0 ); // soft white light
 scene.add( light );
 
 const DayCycle = {
-  DAY: 'Daytime',
-  NIGHT: 'Nighttime'
-}
+  DAY: 'DAY',
+  NIGHT: 'NIGHT'
+};
 
 const params = {
   cycle: DayCycle.DAY,
   time: 0.5
-}
+};
 
 function makeGUI() {
 
-  const gui = new GUI();
+  gui = new GUI();
   gui.add(params, 'time of day', DayCycle).onChange(initDay);
   gui.add(params, 'time', 0.0, 1).step(0.01).onChange(animate);
 
@@ -53,10 +53,12 @@ makeGUI();
 skyBox();
 makefloor();
 initDay();
-loadDuck(200,-100,0);
-loadBarrel(-200,-100,0);
+loadDuck(200, -99, 300);
+loadDock(205, -100, 0);
+loadBarrel(202, -86, 42);
+loadBarrel(202, -86, -42);
 loadHouse(0, -53, 0);
-loadTree(100, -100, 100);
+loadTree(40, -80, 80);
 loadTree(100, -100, -100);
 
 function loadDuck(x, y , z) {
@@ -69,6 +71,7 @@ function loadDuck(x, y , z) {
     model.position.x = x;
     model.position.y = y;
     model.position.z = z;
+    model.rotation.y = Math.random(Math.PI / 3);
     scene.add( model );
 
   } );
@@ -95,10 +98,27 @@ function loadTree(x, y , z) {
 
     const model = gltf.scene;
 
+    model.scale.set(120, 120, 120);
+    model.position.x = x;
+    model.position.y = y;
+    model.position.z = z;
+    model.rotation.y = Math.random(Math.PI / 3);
+    scene.add( model );
+
+  } );
+}
+
+function loadDock(x, y , z) {
+  const loader = new GLTFLoader().setPath( 'gltf/' );
+  loader.load( 'dock.glb', function ( gltf ) {
+
+    const model = gltf.scene;
+
     model.scale.set(50, 50, 50);
     model.position.x = x;
     model.position.y = y;
     model.position.z = z;
+    model.rotation.y = Math.PI;
     scene.add( model );
 
   } );
@@ -114,6 +134,7 @@ function loadHouse(x, y , z) {
     model.position.x = x;
     model.position.y = y;
     model.position.z = z;
+    model.rotation.y = Math.PI / 4;
     scene.add( model );
 
   } );
@@ -121,12 +142,12 @@ function loadHouse(x, y , z) {
 
 function initDay() {
   switch (params.cycle) {
-    case DayCycle.DAY:
+    case params.cycle.DAY:
       console.log("day");
       directionalLight.color.setHex(0xffffff);
       directionalLight.intensity = 10.0;
       break;
-    case DayCycle.NIGHT:
+    case params.cycle.NIGHT:
       console.log("night");
       directionalLight.color.setHex(0x805e00);
       directionalLight.intensity = 1.0;
@@ -162,7 +183,7 @@ function makefloor() {
   floor.receiveShadow = true;
   
   const topFloor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), 
-  new THREE.MeshLambertMaterial({side: THREE.BackSide, color: "#5c9aff", opacity: 0.3, transparent: true}));
+  new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: "#5c9aff", opacity: 0.3, transparent: true}));
 
   topFloor.position.y = - 100;
   topFloor.rotation.x = Math.PI / 2;
