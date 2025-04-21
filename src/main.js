@@ -60,7 +60,7 @@ loadTree(100, -100, 100);
 loadTree(100, -100, -100);
 
 function loadDuck(x, y , z) {
-  const loader = new GLTFLoader().setPath( '/gltf/' );
+  const loader = new GLTFLoader().setPath( 'gltf/' );
   loader.load( 'rubberduck.glb', function ( gltf ) {
 
     const model = gltf.scene;
@@ -75,7 +75,7 @@ function loadDuck(x, y , z) {
 }
 
 function loadBarrel(x, y , z) {
-  const loader = new GLTFLoader().setPath( '/gltf/' );
+  const loader = new GLTFLoader().setPath( 'gltf/' );
   loader.load( 'Barrel.gltf', function ( gltf ) {
 
     const model = gltf.scene;
@@ -90,7 +90,7 @@ function loadBarrel(x, y , z) {
 }
 
 function loadTree(x, y , z) {
-  const loader = new GLTFLoader().setPath( '/gltf/' );
+  const loader = new GLTFLoader().setPath( 'gltf/' );
   loader.load( 'Low_Poly_Tree_GLTF.glb', function ( gltf ) {
 
     const model = gltf.scene;
@@ -105,7 +105,7 @@ function loadTree(x, y , z) {
 }
 
 function loadHouse(x, y , z) {
-  const loader = new GLTFLoader().setPath( '/gltf/' );
+  const loader = new GLTFLoader().setPath( 'gltf/' );
   loader.load( 'wood_house.glb', function ( gltf ) {
 
     const model = gltf.scene;
