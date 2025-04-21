@@ -5,17 +5,6 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 // Group 4
 // COSC3306 Final Project
 
-// This project was coded using visual studio code after installing Node.js and was run using the terminal commands
-// to install three.js and use 'npx vite' to load up the project 
-
-// most code implementation done by Ashlinn, with camera contrls by Ethan.
-// the camera controls aren't perfect, since they don't operate on global position, so rotating 
-// makes movement confusing
-// we ended up turning the chair into a trap door hatch in the middle of the scene, since the textures for it loaded strangely
-
-// note that the camera position starts out facing the opposite direction of the maze
-
-// https://threejs.org/docs/#manual/en/introduction/Installation 
 
 let scene, renderer, camera;
 
@@ -29,9 +18,9 @@ document.body.appendChild( renderer.domElement );
 // initialize camera location to beginning of maze
 camera = new THREE.PerspectiveCamera();
 scene.add(camera)
-camera.position.x = -275;
-camera.position.y = 15;
-camera.position.z = -225;
+camera.position.x = 200;
+camera.position.y = -40;
+
 
 const directionalLight = new THREE.DirectionalLight( 0xffffff, 5.0 );
 scene.add( directionalLight );
@@ -59,23 +48,88 @@ function makeGUI() {
 }
 
 
-// create skybox, floor, and maze walls
+// create skybox, floor, objects
 makeGUI();
 skyBox();
 makefloor();
 initDay();
+loadDuck(200,-100,0);
+loadBarrel(-200,-100,0);
+loadHouse(0, -53, 0);
+loadTree(100, -100, 100);
+loadTree(100, -100, -100);
 
+function loadDuck(x, y , z) {
+  const loader = new GLTFLoader().setPath( '/gltf/' );
+  loader.load( 'rubberduck.glb', function ( gltf ) {
 
+    const model = gltf.scene;
+
+    model.scale.set(5, 5, 5);
+    model.position.x = x;
+    model.position.y = y;
+    model.position.z = z;
+    scene.add( model );
+
+  } );
+}
+
+function loadBarrel(x, y , z) {
+  const loader = new GLTFLoader().setPath( '/gltf/' );
+  loader.load( 'Barrel.gltf', function ( gltf ) {
+
+    const model = gltf.scene;
+
+    model.scale.set(0.2, 0.2, 0.2);
+    model.position.x = x;
+    model.position.y = y;
+    model.position.z = z;
+    scene.add( model );
+
+  } );
+}
+
+function loadTree(x, y , z) {
+  const loader = new GLTFLoader().setPath( '/gltf/' );
+  loader.load( 'Low_Poly_Tree_GLTF.glb', function ( gltf ) {
+
+    const model = gltf.scene;
+
+    model.scale.set(50, 50, 50);
+    model.position.x = x;
+    model.position.y = y;
+    model.position.z = z;
+    scene.add( model );
+
+  } );
+}
+
+function loadHouse(x, y , z) {
+  const loader = new GLTFLoader().setPath( '/gltf/' );
+  loader.load( 'wood_house.glb', function ( gltf ) {
+
+    const model = gltf.scene;
+
+    model.scale.set(20, 20, 20);
+    model.position.x = x;
+    model.position.y = y;
+    model.position.z = z;
+    scene.add( model );
+
+  } );
+}
 
 function initDay() {
   switch (params.cycle) {
     case DayCycle.DAY:
+      console.log("day");
       directionalLight.color.setHex(0xffffff);
-      directionalLight.intensity = 10.0
+      directionalLight.intensity = 10.0;
       break;
     case DayCycle.NIGHT:
+      console.log("night");
       directionalLight.color.setHex(0x805e00);
-      directionalLight.intensity = 1.0
+      directionalLight.intensity = 1.0;
       break;
   }
 }
