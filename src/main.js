@@ -18,12 +18,12 @@ document.body.appendChild( renderer.domElement );
 // initialize camera location to beginning of maze
 camera = new THREE.PerspectiveCamera();
 scene.add(camera)
-camera.position.x = 200;
+camera.position.x = 28;
 camera.position.y = -40;
+camera.position.z = -12;
 
-
+// setup light to be used by GUI controller
 const directionalLight = new THREE.DirectionalLight( 0xffffff, 5.0 );
-scene.add( directionalLight );
 
 // instantiate ambient light
 const light = new THREE.AmbientLight( 0x404040, 15.0 ); // soft white light
@@ -36,23 +36,54 @@ const DayCycle = {
 
 const params = {
   cycle: DayCycle.DAY,
-  time: 0.5
+  time: 0
 };
 
 function makeGUI() {
 
   gui = new GUI();
-  gui.add(params, 'time of day', DayCycle).onChange(initDay);
-  gui.add(params, 'time', 0.0, 1).step(0.01).onChange(animate);
+  gui.add(params, 'time of day', DayCycle).onChange(function (value) {
+    if (value === DayCycle.DAY) {
+      console.log("day");
+      directionalLight.color.setHex(0xffffff);
+      directionalLight.intensity = 10.0;
+    }
+    if (value === DayCycle.NIGHT) {
+      console.log("night");
+      directionalLight.color.setHex(0x805e00);
+      directionalLight.intensity = 1.0;
+    }
+    scene.add( directionalLight );
+  });
+  gui.add(params, 'time', -1, 1).step(0.01).onChange(function (value) {
+
+    if (value < 0) {
+      directionalLight.position.x = value * 1000;
+      directionalLight.position.y = 1000 + (1000 * value);
+      sun.position.x = value * 1000;
+      sun.position.y = 1000 + (1000 * value);
+    }
+    if (value > 0) {
+      directionalLight.position.x = value * 1000;
+      directionalLight.position.y = 1000 + (1000 * -value);
+      sun.position.x = value * 1000;
+      sun.position.y = 1000 + (1000 * -value);
+    }
+    scene.add(sun);
+  });
 
 }
+
+
+const sun = new THREE.Mesh(new THREE.BoxGeometry(150,150,150), 
+new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: "#ffffff"}));
+
 
 
 // create skybox, floor, objects
 makeGUI();
 skyBox();
 makefloor();
-initDay();
 loadDuck(200, -99, 300);
 loadDock(205, -100, 0);
 loadBarrel(202, -86, 42);
@@ -140,21 +171,6 @@ function loadHouse(x, y , z) {
   } );
 }
 
-function initDay() {
-  switch (params.cycle) {
-    case params.cycle.DAY:
-      console.log("day");
-      directionalLight.color.setHex(0xffffff);
-      directionalLight.intensity = 10.0;
-      break;
-    case params.cycle.NIGHT:
-      console.log("night");
-      directionalLight.color.setHex(0x805e00);
-      directionalLight.intensity = 1.0;
-      break;
-  }
-}
-
 // create skybox by loading in textures
 // taken from user128511 https://stackoverflow.com/questions/59169486/skybox-for-three-js
 function skyBox() {
@@ -176,23 +192,52 @@ function skyBox() {
 // https://cobweb.cs.uga.edu/~maria/classes/x810-2023-Fall/09-floor-threeJS.html 
 function makefloor() {
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), 
-  new THREE.MeshLambertMaterial({side: THREE.BackSide, color: "#06275c", opacity: 0.5, transparent: true}));
-// rotate plane to be horizontal
-  floor.position.y = - 200;
+  new THREE.MeshLambertMaterial({side: THREE.BackSide, color: "#171452", opacity: 0.6, transparent: true}));
+  floor.position.y = - 120;
   floor.rotation.x = Math.PI / 2;
   floor.receiveShadow = true;
   
   const topFloor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), 
-  new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: "#5c9aff", opacity: 0.3, transparent: true}));
+  new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: "#0072ab", opacity: 0.4, transparent: true}));
 
   topFloor.position.y = - 100;
   topFloor.rotation.x = Math.PI / 2;
 
   const bFloor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), 
-  new THREE.MeshLambertMaterial({side: THREE.BackSide, color: "#276359"}));
+  new THREE.MeshLambertMaterial({side: THREE.BackSide, color: "#2b2510"}));
 
   bFloor.position.y = -250;
   bFloor.rotation.x = Math.PI /2;
+
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(2000, 200), 
+  new THREE.MeshLambertMaterial({side: THREE.BackSide, color: "#0072ab"}));
+
+  wall.position.x = 1000;
+  wall.position.y = -200;
+  wall.rotation.y = Math.PI / 2;
+  scene.add(wall);
+
+  const wall2 = new THREE.Mesh(new THREE.PlaneGeometry(2000, 200), 
+  new THREE.MeshLambertMaterial({side: THREE.BackSide, color: "#0072ab"}));
+
+  wall2.position.y = -200;
+  wall2.position.z = 1000;
+  scene.add(wall2);
+
+  const wall3 = new THREE.Mesh(new THREE.PlaneGeometry(2000, 200), 
+  new THREE.MeshLambertMaterial({side: THREE.FrontSide, color: "#0072ab"}));
+
+  wall3.position.x = -1000;
+  wall3.position.y = -200;
+  wall3.rotation.y = Math.PI / 2;
+  scene.add(wall3);
+
+  const wall4 = new THREE.Mesh(new THREE.PlaneGeometry(2000, 200), 
+  new THREE.MeshLambertMaterial({side: THREE.FrontSide, color: "#0072ab"}));
+
+  wall4.position.y = -200;
+  wall4.position.z = -1000;
+  scene.add(wall4);
 
   const island = new THREE.Mesh(new THREE.SphereGeometry(300, 300, 250), 
   new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: "#155c10"}));
