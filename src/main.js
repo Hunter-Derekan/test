@@ -5,7 +5,6 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 // Group 4
 // COSC3306 Final Project
 
-
 let scene, renderer, camera, gui;
 
 scene = new THREE.Scene();
@@ -15,9 +14,10 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 
 document.body.appendChild( renderer.domElement );
 
-// initialize camera location to beginning of maze
 camera = new THREE.PerspectiveCamera();
 scene.add(camera)
+// this ensures camera rotation functions like we would expect it to
+camera.rotation.order = "YXZ";
 camera.position.x = 28;
 camera.position.y = -40;
 camera.position.z = -12;
@@ -29,6 +29,13 @@ const directionalLight = new THREE.DirectionalLight( 0xffffff, 5.0 );
 const light = new THREE.AmbientLight( 0x404040, 15.0 ); // soft white light
 scene.add( light );
 
+const moonTexture = new THREE.TextureLoader().load('textures/moon_surface.png');
+const sun = new THREE.Mesh(new THREE.SphereGeometry(30, 64, 32), 
+new THREE.MeshLambertMaterial({color: '#ffda7d'}));
+
+const moon = new THREE.Mesh(new THREE.SphereGeometry(30, 64, 32), 
+new THREE.MeshLambertMaterial({map: moonTexture}));
+
 const DayCycle = {
   DAY: 'DAY',
   NIGHT: 'NIGHT'
@@ -38,47 +45,6 @@ const params = {
   cycle: DayCycle.DAY,
   time: 0
 };
-
-function makeGUI() {
-
-  gui = new GUI();
-  gui.add(params, 'time of day', DayCycle).onChange(function (value) {
-    if (value === DayCycle.DAY) {
-      console.log("day");
-      directionalLight.color.setHex(0xffffff);
-      directionalLight.intensity = 10.0;
-    }
-    if (value === DayCycle.NIGHT) {
-      console.log("night");
-      directionalLight.color.setHex(0x805e00);
-      directionalLight.intensity = 1.0;
-    }
-    scene.add( directionalLight );
-  });
-  gui.add(params, 'time', -1, 1).step(0.01).onChange(function (value) {
-
-    if (value < 0) {
-      directionalLight.position.x = value * 1000;
-      directionalLight.position.y = 1000 + (1000 * value);
-      sun.position.x = value * 1000;
-      sun.position.y = 1000 + (1000 * value);
-    }
-    if (value > 0) {
-      directionalLight.position.x = value * 1000;
-      directionalLight.position.y = 1000 + (1000 * -value);
-      sun.position.x = value * 1000;
-      sun.position.y = 1000 + (1000 * -value);
-    }
-    scene.add(sun);
-  });
-
-}
-
-
-const sun = new THREE.Mesh(new THREE.BoxGeometry(150,150,150), 
-new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: "#ffffff"}));
-
-
 
 // create skybox, floor, objects
 makeGUI();
@@ -91,6 +57,51 @@ loadBarrel(202, -86, -42);
 loadHouse(0, -53, 0);
 loadTree(40, -80, 80);
 loadTree(100, -100, -100);
+loadLamp(36, -40.2, -8);
+loadLamp(20, -40.2, -24);
+
+function makeGUI() {
+
+  gui = new GUI();
+  gui.add(params, 'time of day', DayCycle).onChange(function (value) {
+    if (value === DayCycle.DAY) {
+      console.log("day");
+      directionalLight.color.setHex(0xffffff);
+      directionalLight.intensity = 10.0;
+      sun.visible = true;
+      moon.visible = false;
+    }
+    if (value === DayCycle.NIGHT) {
+      console.log("night");
+      directionalLight.color.setHex(0x805e00);
+      directionalLight.intensity = 1.0;
+      sun.visible = false;
+      moon.visible = true;
+    }
+    scene.add( directionalLight );
+  });
+  gui.add(params, 'time', -1, 1).step(0.01).onChange(function (value) {
+
+    if (value < 0) {
+      directionalLight.position.x = value * 1000;
+      directionalLight.position.y = 1100 + (1100 * value);
+      sun.position.x = value * 1000;
+      sun.position.y = 1200 + (1200 * value);
+      moon.position.x = value * 1000;
+      moon.position.y = 1200 + (1200 * value);
+    }
+    if (value > 0) {
+      directionalLight.position.x = value * 1000;
+      directionalLight.position.y = 1100 + (1100 * -value);
+      sun.position.x = value * 1000;
+      sun.position.y = 1200 + (1200 * -value);
+      moon.position.x = value * 1000;
+      moon.position.y = 1200 + (1200 * -value);
+    }
+    scene.add(sun);
+    scene.add(moon);
+  });
+}
 
 function loadDuck(x, y , z) {
   const loader = new GLTFLoader().setPath( 'gltf/' );
@@ -115,6 +126,21 @@ function loadBarrel(x, y , z) {
     const model = gltf.scene;
 
     model.scale.set(0.2, 0.2, 0.2);
+    model.position.x = x;
+    model.position.y = y;
+    model.position.z = z;
+    scene.add( model );
+
+  } );
+}
+
+function loadLamp(x, y , z) {
+  const loader = new GLTFLoader().setPath( 'gltf/' );
+  loader.load( 'lamp2.glb', function ( gltf ) {
+
+    const model = gltf.scene;
+
+    //model.scale.set(10, 10, 10);
     model.position.x = x;
     model.position.y = y;
     model.position.z = z;
@@ -242,14 +268,19 @@ function makefloor() {
   const island = new THREE.Mesh(new THREE.SphereGeometry(300, 300, 250), 
   new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: "#155c10"}));
 
+  const sand = new THREE.Mesh(new THREE.SphereGeometry(350, 300, 200), 
+  new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: "#c2a661"}));
+
+  sand.position.y = -407;
   island.position.y = -350;
-  
+  scene.add(sand);
   scene.add(island);
   scene.add(floor);
   scene.add(topFloor);
   scene.add(bFloor);
 }
 
+// used for camera movement
 function CalculateRotation(InitalVec,RotationEuler,MoveSpeed) {
   InitalVec.multiplyScalar(MoveSpeed);
   return InitalVec.applyEuler(RotationEuler);
@@ -258,7 +289,7 @@ function CalculateRotation(InitalVec,RotationEuler,MoveSpeed) {
 const moveSpeed = 0.5;
 const rotationSpeed = 0.05;
 var keys = {};
-//Camera control code
+//Camera control code from Ethan
 //I know theres things like orbit controls i could've implementated 
 //But this seemed real simple and gets the job done
 //Listen for when a key is changed and store it's state
@@ -276,18 +307,18 @@ function updatePosition() {
   if (keys['KeyA']) camera.position.add(CalculateRotation(new THREE.Vector3(-1,0,0),camera.rotation,moveSpeed));
   if (keys['KeyD']) camera.position.add(CalculateRotation(new THREE.Vector3(1,0,0),camera.rotation,moveSpeed));
 
-  /* Up & Down
+  /* Up & Down (this breaks everything for some reason)
   if (keys['KeyQ']) camera.position.add(CalculateRotation(new THREE.vector3(0,-1,0),camera.rotation,moveSpeed));
   if (keys['KeyE']) camera.position.add(CalculateRotation(new THREE.vector3(0,1,0),camera.rotation,moveSpeed));
   */
 
-  // Rotate Left & Right
-  if (keys['ArrowLeft']) camera.rotation.y += rotationSpeed;
-  if (keys['ArrowRight']) camera.rotation.y -= rotationSpeed;
-
-  // Rotate Up & Down
-  if (keys['ArrowUp']) camera.rotation.x -= rotationSpeed;
-  if (keys['ArrowDown']) camera.rotation.x += rotationSpeed;
+  // taken from https://codesandbox.io/p/sandbox/clever-andras-k3q078?file=%2Fscript.js%3A39%2C1-48%2C3
+  // this rotates the camera relatively well. just try to have the mouse in the center of the screen 
+  // when entering the tab, or it will be a bit wonky
+  document.onmousemove = function (e) {
+    camera.rotation.x -= e.movementY / 150;
+    camera.rotation.y -= e.movementX / 150;
+  };
 }
 
 // allows orbit controls and background to work
