@@ -27,29 +27,32 @@ camera.position.z = -12;
 const directionalLight = new THREE.DirectionalLight( 0xffffff, 5.0 );
 
 // instantiate ambient light
-const light = new THREE.AmbientLight( 0x404040, 10.0 ); // soft white light
+const light = new THREE.AmbientLight( 0x404040, 10.0 ); 
 scene.add( light );
 
-const moonTexture = new THREE.TextureLoader().load('textures/moon_surface.png');
+// sun object
 const sun = new THREE.Mesh(new THREE.SphereGeometry(30, 64, 32), 
-new THREE.MeshLambertMaterial({color: '#ffda7d'}));
-
+new THREE.MeshLambertMaterial({color: '#fcf1ae'}));
+// moon object
+const moonTexture = new THREE.TextureLoader().load('textures/moon_surface.png');
 const moon = new THREE.Mesh(new THREE.SphereGeometry(30, 64, 32), 
 new THREE.MeshLambertMaterial({map: moonTexture}));
 
+// day/night selection
 const DayCycle = {
   DAY: 'DAY',
   NIGHT: 'NIGHT'
 };
-
+// select day/night, and time of day. for some reason, it refuses to initialize it as day time, so you have to
+// manually do it to get everything to appear.
 const params = {
   cycle: DayCycle.DAY,
   time: 0
 };
 
-// create skybox, floor, objects
+// load in all objects, world, gui
 makeGUI();
-makefloor();
+makeWorld();
 loadDuck(200, -99, 300);
 loadDock(205, -100, 0);
 loadBarrel(202, -86, 42);
@@ -60,10 +63,12 @@ loadTree(100, -100, -100);
 loadLamp(36, -40.2, -8);
 loadLamp(20, -40.2, -24);
 
+// creates GUI and its functions
 function makeGUI() {
-
   gui = new GUI();
   gui.add(params, 'time of day', DayCycle).onChange(function (value) {
+    // during daytime, ambient light and directional light settings are higher
+    // to be more bright, and loads in the day sky box/sun
     if (value === DayCycle.DAY) {
       console.log("day");
       light.intensity = 10.0;
@@ -73,6 +78,8 @@ function makeGUI() {
       moon.visible = false;
       skyBoxDay();
     }
+    // during nighttime, ambient light and directional light settings are lower
+    // to be darker, and loads in the night sky box/moon
     if (value === DayCycle.NIGHT) {
       console.log("night");
       light.intensity = 4.0;
@@ -84,8 +91,9 @@ function makeGUI() {
     }
     scene.add( directionalLight );
   });
-  gui.add(params, 'time', -1, 1).step(0.01).onChange(function (value) {
 
+  gui.add(params, 'time', -1, 1).step(0.01).onChange(function (value) {
+    // moves light and sun/moon according to time of day. the light and object move together
     if (value < 0) {
       directionalLight.position.x = value * 1000;
       directionalLight.position.y = 1100 + (1100 * value);
@@ -107,6 +115,7 @@ function makeGUI() {
   });
 }
 
+// loads in duck objects (made by Ethan), placing them at the passed x/y/z coordinates
 function loadDuck(x, y , z) {
   const loader = new GLTFLoader().setPath( 'gltf/' );
   loader.load( 'rubberduck.glb', function ( gltf ) {
@@ -117,12 +126,12 @@ function loadDuck(x, y , z) {
     model.position.x = x;
     model.position.y = y;
     model.position.z = z;
-    model.rotation.y = Math.random(Math.PI / 3);
+    model.rotation.y = Math.random(Math.PI / 2);
     scene.add( model );
 
   } );
 }
-
+// loads in the barrel objects, placed at the passed x/y/z coordinates
 function loadBarrel(x, y , z) {
   const loader = new GLTFLoader().setPath( 'gltf/' );
   loader.load( 'Barrel.gltf', function ( gltf ) {
@@ -138,6 +147,7 @@ function loadBarrel(x, y , z) {
   } );
 }
 
+// loads in the lamp objects (made by Ethan), placed at the passed x/y/z coordinates
 function loadLamp(x, y , z) {
   const loader = new GLTFLoader().setPath( 'gltf/' );
   loader.load( 'lamp2.glb', function ( gltf ) {
@@ -153,6 +163,7 @@ function loadLamp(x, y , z) {
   } );
 }
 
+// loads in the tree objects, placed at the passed x/y/z coordinates
 function loadTree(x, y , z) {
   const loader = new GLTFLoader().setPath( 'gltf/' );
   loader.load( 'Low_Poly_Tree_GLTF.glb', function ( gltf ) {
@@ -169,6 +180,7 @@ function loadTree(x, y , z) {
   } );
 }
 
+// loads in the dock object (made by Ethan) at the passed x/y/z coordinates
 function loadDock(x, y , z) {
   const loader = new GLTFLoader().setPath( 'gltf/' );
   loader.load( 'dock.glb', function ( gltf ) {
@@ -185,6 +197,7 @@ function loadDock(x, y , z) {
   } );
 }
 
+// loads in the house object at the passed x/y/z coordinates
 function loadHouse(x, y , z) {
   const loader = new GLTFLoader().setPath( 'gltf/' );
   loader.load( 'wood_house.glb', function ( gltf ) {
@@ -201,10 +214,9 @@ function loadHouse(x, y , z) {
   } );
 }
 
-// create skybox by loading in textures
+// loads texture files and sets the background to be a cube of daylight sky textures
 // taken from user128511 https://stackoverflow.com/questions/59169486/skybox-for-three-js
 function skyBoxDay() {
-  // loads texture files and sets the background to be a cube of daylight sky textures
     const loader = new THREE.CubeTextureLoader();
     const texture = loader.load([
       'sky/Daylight Box_Right.bmp',
@@ -216,9 +228,9 @@ function skyBoxDay() {
     ]);
     scene.background = texture;
   }
-
+// same as above, for night
+// loads texture files and sets the background to be a cube of nighttime sky textures
   function skyBoxNight() {
-    // loads texture files and sets the background to be a cube of daylight sky textures
       const loader = new THREE.CubeTextureLoader();
       const texture = loader.load([
         'sky/skybox_left.png',
@@ -231,28 +243,28 @@ function skyBoxDay() {
       scene.background = texture;
     }
 
-// creates the floor plane. taken from
+// creates the water and island, and just general scene structure. plane tutorial from
 // https://cobweb.cs.uga.edu/~maria/classes/x810-2023-Fall/09-floor-threeJS.html 
-function makefloor() {
+function makeWorld() {
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), 
   new THREE.MeshLambertMaterial({side: THREE.BackSide, color: "#171452", opacity: 0.9, transparent: true}));
   floor.position.y = - 120;
   floor.rotation.x = Math.PI / 2;
   floor.receiveShadow = true;
-  
+  // surface of water
   const waterText = new THREE.TextureLoader().load('textures/Water 0339.jpg');
-  const topFloor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), 
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), 
   new THREE.MeshLambertMaterial({side: THREE.DoubleSide, map: waterText, opacity: 0.4, transparent: true}));
 
-  topFloor.position.y = - 100;
-  topFloor.rotation.x = Math.PI / 2;
-
+  water.position.y = - 100;
+  water.rotation.x = Math.PI / 2;
+// bottom of the water
   const bFloor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), 
   new THREE.MeshLambertMaterial({side: THREE.BackSide, color: "#2b2510"}));
 
   bFloor.position.y = -250;
   bFloor.rotation.x = Math.PI /2;
-
+// walls 1-4 are so that you dont look through the water and see the skybox lol
   const wall = new THREE.Mesh(new THREE.PlaneGeometry(2000, 200), 
   new THREE.MeshLambertMaterial({side: THREE.BackSide, color: "#173b5c"}));
 
@@ -282,33 +294,34 @@ function makefloor() {
   wall4.position.y = -200;
   wall4.position.z = -1000;
   scene.add(wall4);
-
+  
+// island grass
   const grass = new THREE.TextureLoader().load('textures/grass03.png');
-  const grassNorm = new THREE.TextureLoader().load('textures/Grass01_2K_Normal.png');
   const island = new THREE.Mesh(new THREE.SphereGeometry(300, 300, 250), 
   new THREE.MeshLambertMaterial({side: THREE.FrontSide, map: grass}));
-
+// island sand
   const sanText = new THREE.TextureLoader().load('textures/sandy_gravel_diff_4k.jpg');
   const sand = new THREE.Mesh(new THREE.SphereGeometry(350, 300, 200), 
   new THREE.MeshLambertMaterial({side: THREE.FrontSide, map:sanText}));
 
   sand.position.y = -407;
   island.position.y = -350;
+
   scene.add(sand);
   scene.add(island);
   scene.add(floor);
-  scene.add(topFloor);
+  scene.add(water);
   scene.add(bFloor);
 }
 
-// used for camera movement
-function CalculateRotation(InitalVec,RotationEuler,MoveSpeed) {
+// used for camera movement (not rotation) so that it moves in the correct direction
+// no matter the camera rotation
+function CalculateRotation(InitalVec, RotationEuler, MoveSpeed) {
   InitalVec.multiplyScalar(MoveSpeed);
   return InitalVec.applyEuler(RotationEuler);
 }
-
-const moveSpeed = 0.8;
-
+// values for camera movement
+const moveSpeed = 0.5;
 var keys = {};
 //Camera control code from Ethan
 //I know theres things like orbit controls i could've implementated 
@@ -342,11 +355,11 @@ function updatePosition() {
   };
 }
 
-// allows orbit controls and background to work
 // renders each frame of the scene and camera's view
 function animate() {
 	renderer.render( scene, camera );
   updatePosition();
   window.requestAnimationFrame(animate);
 }
+
 animate();
